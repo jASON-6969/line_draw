@@ -11,6 +11,7 @@ from matplotlib.figure import Figure
 DEFAULT_MAX_X = 10.0
 DEFAULT_MAX_Y = 10.0
 DEFAULT_DEGREE = 5
+DEFAULT_SAMPLE_DISTANCE = 0.05
 MIN_POINTS = 2
 MAX_DEGREE = 12
 MAX_TAN_ABS = 20.0
@@ -29,9 +30,11 @@ class PolynomialDrawApp:
         self.points: list[tuple[float, float]] = []
         self.drawing = False
         self.picking_start_point = False
+        self.active_sample_distance = DEFAULT_SAMPLE_DISTANCE
 
         self.max_x_var = tk.StringVar(value=str(DEFAULT_MAX_X))
         self.max_y_var = tk.StringVar(value=str(DEFAULT_MAX_Y))
+        self.sample_distance_var = tk.StringVar(value=str(DEFAULT_SAMPLE_DISTANCE))
         self.use_start_point_var = tk.BooleanVar(value=False)
         self.start_x_var = tk.StringVar(value="0")
         self.start_y_var = tk.StringVar(value="0")
@@ -111,6 +114,11 @@ class PolynomialDrawApp:
             row=1, column=9, sticky="w", pady=(8, 0)
         )
 
+        ttk.Label(controls, text="Sample Distance").grid(row=2, column=0, padx=(0, 4), pady=(8, 0), sticky="w")
+        ttk.Entry(controls, width=8, textvariable=self.sample_distance_var).grid(
+            row=2, column=1, padx=(0, 12), pady=(8, 0), sticky="w"
+        )
+
         plot_area = ttk.Frame(self.root, padding=(10, 0, 10, 0))
         plot_area.grid(row=1, column=0, sticky="nsew")
         plot_area.columnconfigure(0, weight=1)
@@ -166,16 +174,22 @@ class PolynomialDrawApp:
             self.set_start_point_from_event(event)
             return
 
+        sample_distance = self._parse_positive_float(self.sample_distance_var.get(), "Sample Distance")
+        if sample_distance is None:
+            return
+        self.active_sample_distance = sample_distance
+
+        event_point = self._event_point(event)
         first_point = self._get_start_point()
         if first_point is None:
             return
         if not self.use_start_point_var.get():
-            first_point = (float(event.xdata), float(event.ydata))  # type: ignore[attr-defined]
+            first_point = event_point
 
         self.drawing = True
-        self.points = [first_point]
-        if first_point != (float(event.xdata), float(event.ydata)):  # type: ignore[attr-defined]
-            self.points.append((float(event.xdata), float(event.ydata)))  # type: ignore[attr-defined]
+        self.points = []
+        self._add_sampled_point(first_point, force=True)
+        self._add_sampled_point(event_point)
         self.fit_line.set_data([], [])
         self.equation_var.set("y = ")
         self.status_var.set("Drawing...")
@@ -185,8 +199,8 @@ class PolynomialDrawApp:
         if not self.drawing or not self._is_valid_draw_event(event):
             return
 
-        self.points.append((float(event.xdata), float(event.ydata)))  # type: ignore[attr-defined]
-        self._refresh_raw_points()
+        if self._add_sampled_point(self._event_point(event)):
+            self._refresh_raw_points()
 
     def on_release(self, event: object) -> None:
         if not self.drawing:
@@ -194,8 +208,8 @@ class PolynomialDrawApp:
 
         self.drawing = False
         if self._is_valid_draw_event(event):
-            self.points.append((float(event.xdata), float(event.ydata)))  # type: ignore[attr-defined]
-            self._refresh_raw_points()
+            if self._add_sampled_point(self._event_point(event), force=True):
+                self._refresh_raw_points()
 
         self.fit_and_report()
 
@@ -285,6 +299,24 @@ class PolynomialDrawApp:
             xs, ys = zip(*self.points)
             self.raw_line.set_data(xs, ys)
         self.canvas.draw_idle()
+
+    def _add_sampled_point(self, point: tuple[float, float], force: bool = False) -> bool:
+        if self.points and point == self.points[-1]:
+            return False
+
+        if force or not self.points or self._point_distance(self.points[-1], point) >= self.active_sample_distance:
+            self.points.append(point)
+            return True
+
+        return False
+
+    @staticmethod
+    def _event_point(event: object) -> tuple[float, float]:
+        return float(event.xdata), float(event.ydata)  # type: ignore[attr-defined]
+
+    @staticmethod
+    def _point_distance(first: tuple[float, float], second: tuple[float, float]) -> float:
+        return float(np.hypot(second[0] - first[0], second[1] - first[1]))
 
     def _sorted_unique_points(self) -> tuple[np.ndarray, np.ndarray]:
         pts = np.array(self.points, dtype=float)

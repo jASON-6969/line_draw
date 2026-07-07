@@ -11,6 +11,7 @@ Line Draw Polynomial Fitter is a lightweight Python desktop app for sketching po
 - Adjust the polynomial degree from 1 to 12.
 - Optionally include `sin(x)`, `cos(x)`, and `tan(x)` terms in the fitting basis.
 - Set custom X and Y graph limits.
+- Choose the minimum distance between recorded sample points.
 - Pick or manually enter a fixed start point.
 - View the generated equation immediately in the app.
 - Clear the canvas and redraw without restarting.
@@ -47,16 +48,17 @@ python app.py
 Then:
 
 1. Set the graph size with `Max X` and `Max Y` if needed.
-2. Choose a polynomial degree.
-3. Hold the left mouse button and draw inside the graph.
-4. Release the mouse button to fit the curve.
-5. Read the generated function from the `Function` field.
-6. Toggle `sin`, `cos`, or `tan` if you want to include trigonometric terms.
-7. Use `Clear` to start again.
+2. Set `Sample Distance` if you want more or fewer recorded points.
+3. Choose a polynomial degree.
+4. Hold the left mouse button and draw inside the graph.
+5. Release the mouse button to fit the curve.
+6. Read the generated function from the `Function` field.
+7. Toggle `sin`, `cos`, or `tan` if you want to include trigonometric terms.
+8. Use `Clear` to start again.
 
 ## How It Works
 
-The app records points from your mouse movement, groups nearby duplicate X values, and fits the resulting data with a linear regression curve fitting model using NumPy and least-squares estimation.
+The app records points from your mouse movement when they are at least the selected sample distance apart, groups nearby duplicate X values, and fits the resulting data with a linear regression curve fitting model using NumPy and least-squares estimation.
 
 By default, the model uses polynomial terms:
 
