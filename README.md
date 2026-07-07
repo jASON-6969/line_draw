@@ -17,9 +17,7 @@ Line Draw Polynomial Fitter is a lightweight Python desktop app for sketching po
 
 ## Preview
 
-```markdown
 ![Line Draw Polynomial Fitter screenshot](docs/screenshot.png)
-```
 
 ## Requirements
 
