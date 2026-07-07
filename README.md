@@ -2,7 +2,7 @@
 
 Draw a curve with your mouse and turn it into a fitted mathematical function.
 
-Line Draw Polynomial Fitter is a lightweight Python desktop app for sketching points on a graph and fitting them with a polynomial curve. It is useful for quick visual experiments, math demos, curve approximation, and exploring how polynomial degree and trigonometric basis terms affect a fitted function.
+Line Draw Polynomial Fitter is a lightweight Python desktop app for sketching points on a graph and fitting them with a polynomial curve. It uses linear regression curve fitting with least-squares estimation to match the drawn path as closely as possible. It is useful for quick visual experiments, math demos, curve approximation, and exploring how polynomial degree and trigonometric basis terms affect a fitted function.
 
 ## Features
 
@@ -56,7 +56,7 @@ Then:
 
 ## How It Works
 
-The app records points from your mouse movement, groups nearby duplicate X values, and fits the resulting data with a least-squares model using NumPy.
+The app records points from your mouse movement, groups nearby duplicate X values, and fits the resulting data with a linear regression curve fitting model using NumPy and least-squares estimation.
 
 By default, the model uses polynomial terms:
 
